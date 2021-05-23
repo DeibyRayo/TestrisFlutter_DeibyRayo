@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:async';
 import 'dart:math';
+import 'main.dart';
 import 'block.dart';
 import 'sub_block.dart';
 
@@ -29,8 +31,6 @@ class GameState extends State<Game> {
   BlockMovement action;
   Block block;
   Timer timer;
-  bool isPlaying = false;
-  int score;
 
   List<SubBlock> oldSubBlocks;
 
@@ -59,8 +59,8 @@ class GameState extends State<Game> {
   }
 
   void startGame() {
-    isPlaying = true;
-    score = 0;
+    Provider.of<Data>(context).setIsPlaying(true);
+    Provider.of<Data>(context).setScore(0);
     isGameOver = false;
     oldSubBlocks = List<SubBlock>();
 
@@ -68,13 +68,14 @@ class GameState extends State<Game> {
     subBlockWidth =
         (renderBoxGame.size.width - GAME_AREA_BORDER_WIDTH * 2) / BLOCKS_X;
 
+    Provider.of<Data>(context).setNextBlock(getNewBlock());
     block = getNewBlock();
 
     timer = Timer.periodic(duration, onPlay);
   }
 
   void endGame() {
-    isPlaying = false;
+    Provider.of<Data>(context).setIsPlaying(false);
     timer.cancel();
   }
 
@@ -132,7 +133,8 @@ class GameState extends State<Game> {
           oldSubBlocks.add(subBlock);
         });
 
-        block = getNewBlock();
+        block = Provider.of<Data>(context).nextBlock;
+        Provider.of<Data>(context).setNextBlock(getNewBlock());
       }
 
       action = null;
@@ -153,8 +155,7 @@ class GameState extends State<Game> {
     // Añadir puntaje si una fila esta compelta
     rows.forEach((rowNum, count) {
       if (count == BLOCKS_X) {
-        score += combo++;
-        print('score: $score');
+        Provider.of<Data>(context).addScore(combo++);
         rowsToBeRemoved.add(rowNum);
       }
     });
